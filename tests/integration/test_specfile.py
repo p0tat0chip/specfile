@@ -14,6 +14,7 @@ from specfile.prep import AutopatchMacro, AutosetupMacro, PatchMacro, SetupMacro
 from specfile.sections import Section
 from specfile.specfile import Specfile, SpecParser
 
+
 def create_specfile(input_path, mode="path", **kwargs):
     """
     Create a Specfile instance with different input modes.
@@ -28,11 +29,12 @@ def create_specfile(input_path, mode="path", **kwargs):
         with open(input_path, "r+", encoding="utf-8", errors="surrogateescape") as f:
             return Specfile(file=f, **kwargs)
     elif mode == "raw_string":
-        with open(input_path, "r", encoding="utf-8", errors="surrogateescape") as f:
+        with open(input_path, encoding="utf-8", errors="surrogateescape") as f:
             content = f.read()
         return Specfile(raw_string=content, **kwargs)
     else:
         raise ValueError(f"Unknown mode: {mode}")
+
 
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_prep_traditional(spec_traditional, mode):
@@ -57,6 +59,7 @@ def test_prep_traditional(spec_traditional, mode):
         prep.macros[1].options.E = True
     with spec.sections() as sections:
         assert sections.prep[1] == "%patch 0 -p2 -b .test2 -E"
+
 
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_prep_autosetup(spec_autosetup, mode):
@@ -227,14 +230,7 @@ def test_patches(spec_patchlist, mode):
     ],
 )
 def test_add_changelog_entry(
-    spec_minimal,
-    entry,
-    author,
-    email,
-    timestamp,
-    evr,
-    result,
-    mode
+    spec_minimal, entry, author, email, timestamp, evr, result, mode
 ):
     if author is None:
         flexmock(specfile.specfile).should_receive("guess_packager").and_return(
@@ -342,6 +338,7 @@ def test_autorelease(spec_rpmautospec, raw_release, has_autorelease, mode):
     spec = create_specfile(spec_rpmautospec)
     spec.raw_release = raw_release
     assert spec.has_autorelease == has_autorelease
+
 
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 @pytest.mark.skipif(
@@ -492,6 +489,7 @@ def test_update_tag(spec_macros, mode):
         assert not md.prever.commented_out
     assert spec.version == "%{package_version}"
 
+
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_multiple_instances(spec_minimal, spec_autosetup, mode):
     spec1 = Specfile(spec_minimal)
@@ -548,6 +546,7 @@ def test_shell_expansions(spec_shell_expansions, mode):
     assert spec.expanded_version == "1035.4200"
     assert "C.UTF-8" in spec.expand("%numeric_locale")
 
+
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_context_management(spec_autosetup, spec_traditional, mode):
     spec = create_specfile(spec_autosetup)
@@ -569,6 +568,7 @@ def test_context_management(spec_autosetup, spec_traditional, mode):
     with spec1.tags() as tags1, spec2.tags() as tags2:
         assert tags1 is not tags2
         assert tags1 == tags2
+
 
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_copy(spec_autosetup, mode):
@@ -705,6 +705,7 @@ def test_update_version(
         assert md.upstream_version.body != version
     assert spec.version == version
     assert spec.expanded_version == version
+
 
 @pytest.mark.parametrize("mode", ["path", "file", "raw_string"])
 def test_trailing_newline(spec_autosetup, spec_no_trailing_newline, mode):
