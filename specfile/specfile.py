@@ -90,7 +90,9 @@ class Specfile:
         """
         # count mutually exclusive arguments
         if sum([file is not None, path is not None, content is not None]) > 1:
-            raise ValueError("Only one of 'file', 'path', or 'content' should be provided")
+            raise ValueError(
+                "Only one of 'file', 'path', or 'content' should be provided"
+            )
         if file is not None:
             self._file = file
             try:
