@@ -31,7 +31,7 @@ def create_specfile(input_path, mode="path", **kwargs):
     elif mode == "raw_string":
         with open(input_path, encoding="utf-8", errors="surrogateescape") as f:
             content = f.read()
-        return Specfile(raw_string=content, **kwargs)
+        return Specfile(content=content, **kwargs)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 

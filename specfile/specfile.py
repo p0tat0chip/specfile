@@ -67,7 +67,7 @@ class Specfile:
         self,
         path: Optional[Union[Path, str]] = None,
         file: Optional[IOBase] = None,
-        raw_string: Optional[str] = None,
+        content: Optional[str] = None,
         sourcedir: Optional[Union[Path, str]] = None,
         autosave: bool = False,
         macros: Optional[List[Tuple[str, Optional[str]]]] = None,
@@ -79,7 +79,7 @@ class Specfile:
         Args:
             path: Path to the spec file.
             file: File object representing the spec file.
-            raw_string: String containing the spec file content.
+            content: String containing the spec file content.
             sourcedir: Path to sources and patches.
             autosave: Whether to automatically save any changes made.
             macros: List of extra macro definitions.
@@ -88,10 +88,13 @@ class Specfile:
                 Such sources include sources referenced from shell expansions
                 in tag values and sources included using the _%include_ directive.
         """
+        # count mutually exclusive arguments
+        if sum([file is not None, path is not None, content is not None]) > 1:
+            raise ValueError("Only one of 'file', 'path', or 'content' should be provided")
         if file is not None:
             self._file = file
             try:
-                self._file.name
+                sourcedir = Path(self._file.name).parent
             except AttributeError:
                 if sourcedir is None:
                     raise ValueError(
@@ -99,8 +102,8 @@ class Specfile:
                     )
         elif path is not None:
             self._file = Path(path).open("r+", **ENCODING_ARGS)
-        elif raw_string is not None:
-            self._file = StringIO(raw_string)
+        elif content is not None:
+            self._file = StringIO(content)
             if sourcedir is None:
                 raise ValueError(
                     "'sourcedir' is required when providing a raw string input"
@@ -259,14 +262,13 @@ class Specfile:
     def reload(self) -> None:
         """Reloads the spec file content."""
         try:
-            if isinstance(self._file, IOBase) and hasattr(self._file, "name"):
-                file_path = Path(self._file.name)
-                if file_path.exists():
-                    self._file.close()
-                    self._file = file_path.open("r+", **ENCODING_ARGS)
-            self._lines, self._trailing_newline = self._read_lines(self._file)
+            path = Path(self._file.name)
         except AttributeError:
-            self._lines, self._trailing_newline = self._read_lines(self._file)
+            pass
+        else:
+            self._file.close()
+            self._file = path.open("r+", **ENCODING_ARGS)
+        self._lines, self._trailing_newline = self._read_lines(self._file)
 
     def save(self) -> None:
         """Saves the spec file content."""
